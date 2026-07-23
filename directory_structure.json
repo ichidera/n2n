@@ -3,178 +3,450 @@
   "type": "directory",
   "children": [
     {
-      "name": ".gradle",
+      "name": ".git",
       "type": "directory",
       "children": [
         {
-          "name": "8.5",
+          "name": "hooks",
           "type": "directory",
           "children": [
             {
-              "name": "checksums",
+              "name": "applypatch-msg.sample",
+              "type": "file"
+            },
+            {
+              "name": "commit-msg.sample",
+              "type": "file"
+            },
+            {
+              "name": "fsmonitor-watchman.sample",
+              "type": "file"
+            },
+            {
+              "name": "post-update.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-applypatch.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-commit.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-merge-commit.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-push.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-rebase.sample",
+              "type": "file"
+            },
+            {
+              "name": "pre-receive.sample",
+              "type": "file"
+            },
+            {
+              "name": "prepare-commit-msg.sample",
+              "type": "file"
+            },
+            {
+              "name": "push-to-checkout.sample",
+              "type": "file"
+            },
+            {
+              "name": "sendemail-validate.sample",
+              "type": "file"
+            },
+            {
+              "name": "update.sample",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "name": "info",
+          "type": "directory",
+          "children": [
+            {
+              "name": "exclude",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "name": "objects",
+          "type": "directory",
+          "children": [
+            {
+              "name": "01",
               "type": "directory",
               "children": [
                 {
-                  "name": "checksums.lock",
-                  "type": "file"
-                },
-                {
-                  "name": "md5-checksums.bin",
-                  "type": "file"
-                },
-                {
-                  "name": "sha1-checksums.bin",
+                  "name": "b5968832d55a1630979da11f106f90b263024b",
                   "type": "file"
                 }
               ]
             },
             {
-              "name": "dependencies-accessors",
+              "name": "06",
               "type": "directory",
               "children": [
                 {
-                  "name": "dependencies-accessors.lock",
-                  "type": "file"
-                },
-                {
-                  "name": "gc.properties",
+                  "name": "13b71dea84e1e6fccb0599b07a42fdd0ddabdc",
                   "type": "file"
                 }
               ]
             },
             {
-              "name": "executionHistory",
+              "name": "09",
               "type": "directory",
               "children": [
                 {
-                  "name": "executionHistory.bin",
-                  "type": "file"
-                },
-                {
-                  "name": "executionHistory.lock",
+                  "name": "91fa228fab14dede052935fa844627678cf160",
                   "type": "file"
                 }
               ]
             },
             {
-              "name": "fileChanges",
+              "name": "1a",
               "type": "directory",
               "children": [
                 {
-                  "name": "last-build.bin",
+                  "name": "a94a4269074199e6ed2c37e8db3e0826030965",
                   "type": "file"
                 }
               ]
             },
             {
-              "name": "fileHashes",
+              "name": "22",
               "type": "directory",
               "children": [
                 {
-                  "name": "fileHashes.bin",
-                  "type": "file"
-                },
-                {
-                  "name": "fileHashes.lock",
+                  "name": "528124e97ce7d533d76fa1075f3c116dc9409a",
                   "type": "file"
                 }
               ]
             },
             {
-              "name": "vcsMetadata",
+              "name": "2b",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "e196c80417a432f564b070d81d42032cf79429",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "31",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "c6a5e1ffbe39fd670499613432e78d944163b2",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "32",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "128330db4478b6953833694bac74b99ac5e8e0",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "35",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "c5850ac9bddfb2a8f8fc57ebfa298c84ec8b7b",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "36",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "21b6f7fb494ef6e239a507d7661b91e4a1404c",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "3f",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "55e5c37c4bab42b1be61ccd8a7b5774e7c91e2",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "46",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "fa18ebb4b0d47db4f7f969893a92db33d25d10",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "47",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "fac1410f6a4c14cbee169a4c85fa9da4c3e2bb",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "6c",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "fc78f487d45bdd179dde50efb333d2941acfac",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "78",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "2e2231a4fe949f717afa3428112b99c2e22318",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "93",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "e3f59f135dd2dd498de4beb5c64338cc33beeb",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "95",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "751d7be7bd9a10870c517776499bd75039af77",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "a8",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "0b22ce5cffec8b48ee79b11c67945e91f99d5f",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "ad",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "7515d3a10d5474663c170e63660d7425aa6f88",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "b3",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "3b4f397b8888730fa9e26519e7a1f43caf1389",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "bb",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "1d15f03552429b8016489d345c06af4990163d",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "bd",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "5b5fc626c327a1db143dd03a24c775ce3327f4",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "d6",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "4cd4917707c1f8861d8cb53dd15194d4248596",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "d7",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "294141571469d704d2c754f6d27f04d4a17da8",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "df",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "e0770424b2a19faf507a501ebfc23be8f54e7b",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "e3",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "ee533edd46668f8104a0972708d8d40452112a",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "e6",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "d2f4cff431ee33ca1c403e135140e3d7b4e7f6",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "eb",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "9284be337e686f721878180a479aa8199f4eca",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "ff",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "41c7cc8da7769b59ded7019314f354d28121a4",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "info",
               "type": "directory",
               "children": []
             },
             {
-              "name": "gc.properties",
-              "type": "file"
+              "name": "pack",
+              "type": "directory",
+              "children": []
             }
           ]
         },
         {
-          "name": "buildOutputCleanup",
+          "name": "refs",
           "type": "directory",
           "children": [
             {
-              "name": "buildOutputCleanup.lock",
-              "type": "file"
+              "name": "heads",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "main",
+                  "type": "file"
+                }
+              ]
             },
             {
-              "name": "cache.properties",
-              "type": "file"
+              "name": "remotes",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "origin",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "HEAD",
+                      "type": "file"
+                    },
+                    {
+                      "name": "main",
+                      "type": "file"
+                    }
+                  ]
+                }
+              ]
             },
             {
-              "name": "outputFiles.bin",
-              "type": "file"
+              "name": "tags",
+              "type": "directory",
+              "children": []
             }
           ]
         },
         {
-          "name": "vcs-1",
-          "type": "directory",
-          "children": [
-            {
-              "name": "gc.properties",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "config.properties",
+          "name": "COMMIT_EDITMSG",
           "type": "file"
         },
         {
-          "name": "file-system.probe",
-          "type": "file"
-        }
-      ]
-    },
-    {
-      "name": ".idea",
-      "type": "directory",
-      "children": [
-        {
-          "name": ".gitignore",
+          "name": "config",
           "type": "file"
         },
         {
-          "name": ".name",
+          "name": "description",
           "type": "file"
         },
         {
-          "name": "compiler.xml",
+          "name": "FETCH_HEAD",
           "type": "file"
         },
         {
-          "name": "copilot.data.migration.agent.xml",
+          "name": "HEAD",
           "type": "file"
         },
         {
-          "name": "copilot.data.migration.ask2agent.xml",
-          "type": "file"
-        },
-        {
-          "name": "copilot.data.migration.edit.xml",
-          "type": "file"
-        },
-        {
-          "name": "gradle.xml",
-          "type": "file"
-        },
-        {
-          "name": "migrations.xml",
-          "type": "file"
-        },
-        {
-          "name": "misc.xml",
-          "type": "file"
-        },
-        {
-          "name": "other.xml",
-          "type": "file"
-        },
-        {
-          "name": "workspace.xml",
+          "name": "index",
           "type": "file"
         }
       ]
@@ -246,10 +518,6 @@
           "type": "directory",
           "children": [
             {
-              "name": "gradle-wrapper.jar",
-              "type": "file"
-            },
-            {
               "name": "gradle-wrapper.properties",
               "type": "file"
             }
@@ -258,11 +526,23 @@
       ]
     },
     {
+      "name": ".gitattributes",
+      "type": "file"
+    },
+    {
+      "name": ".gitignore",
+      "type": "file"
+    },
+    {
       "name": "build.gradle",
       "type": "file"
     },
     {
       "name": "directory_structure.json",
+      "type": "file"
+    },
+    {
+      "name": "gradle.properties",
       "type": "file"
     },
     {
@@ -278,7 +558,7 @@
       "type": "file"
     },
     {
-      "name": "local.properties",
+      "name": "LICENSE",
       "type": "file"
     },
     {
