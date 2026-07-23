@@ -1,0 +1,79 @@
+# Gradle and build files
+build/
+.gradle/
+*.apk
+*.ap_
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+*.aar
+
+# Local configuration file
+local.properties
+
+# Android Gradle build output
+app/build/
+*/build/
+
+# IDE files
+.idea/
+.vscode/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.iml
+*.iws
+*.iml
+.DS_Store
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android resources
+.android/
+src/main/generated/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+*.cover
+.hypothesis/
+
+# IDE specific
+*.orig
+
+# Misc
+.gradle/
+.idea/
+.classpath
+.project
+local.properties
+build/

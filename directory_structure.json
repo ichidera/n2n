@@ -1,0 +1,297 @@
+{
+  "name": "n2n",
+  "type": "directory",
+  "children": [
+    {
+      "name": ".gradle",
+      "type": "directory",
+      "children": [
+        {
+          "name": "8.5",
+          "type": "directory",
+          "children": [
+            {
+              "name": "checksums",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "checksums.lock",
+                  "type": "file"
+                },
+                {
+                  "name": "md5-checksums.bin",
+                  "type": "file"
+                },
+                {
+                  "name": "sha1-checksums.bin",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "dependencies-accessors",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "dependencies-accessors.lock",
+                  "type": "file"
+                },
+                {
+                  "name": "gc.properties",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "executionHistory",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "executionHistory.bin",
+                  "type": "file"
+                },
+                {
+                  "name": "executionHistory.lock",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "fileChanges",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "last-build.bin",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "fileHashes",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "fileHashes.bin",
+                  "type": "file"
+                },
+                {
+                  "name": "fileHashes.lock",
+                  "type": "file"
+                }
+              ]
+            },
+            {
+              "name": "vcsMetadata",
+              "type": "directory",
+              "children": []
+            },
+            {
+              "name": "gc.properties",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "name": "buildOutputCleanup",
+          "type": "directory",
+          "children": [
+            {
+              "name": "buildOutputCleanup.lock",
+              "type": "file"
+            },
+            {
+              "name": "cache.properties",
+              "type": "file"
+            },
+            {
+              "name": "outputFiles.bin",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "name": "vcs-1",
+          "type": "directory",
+          "children": [
+            {
+              "name": "gc.properties",
+              "type": "file"
+            }
+          ]
+        },
+        {
+          "name": "config.properties",
+          "type": "file"
+        },
+        {
+          "name": "file-system.probe",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "name": ".idea",
+      "type": "directory",
+      "children": [
+        {
+          "name": ".gitignore",
+          "type": "file"
+        },
+        {
+          "name": ".name",
+          "type": "file"
+        },
+        {
+          "name": "compiler.xml",
+          "type": "file"
+        },
+        {
+          "name": "copilot.data.migration.agent.xml",
+          "type": "file"
+        },
+        {
+          "name": "copilot.data.migration.ask2agent.xml",
+          "type": "file"
+        },
+        {
+          "name": "copilot.data.migration.edit.xml",
+          "type": "file"
+        },
+        {
+          "name": "gradle.xml",
+          "type": "file"
+        },
+        {
+          "name": "migrations.xml",
+          "type": "file"
+        },
+        {
+          "name": "misc.xml",
+          "type": "file"
+        },
+        {
+          "name": "other.xml",
+          "type": "file"
+        },
+        {
+          "name": "workspace.xml",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "name": "app",
+      "type": "directory",
+      "children": [
+        {
+          "name": "src",
+          "type": "directory",
+          "children": [
+            {
+              "name": "main",
+              "type": "directory",
+              "children": [
+                {
+                  "name": "java",
+                  "type": "directory",
+                  "children": [
+                    {
+                      "name": "com",
+                      "type": "directory",
+                      "children": [
+                        {
+                          "name": "example",
+                          "type": "directory",
+                          "children": [
+                            {
+                              "name": "lanbridge",
+                              "type": "directory",
+                              "children": [
+                                {
+                                  "name": "MainActivity.kt",
+                                  "type": "file"
+                                },
+                                {
+                                  "name": "TunLanService.kt",
+                                  "type": "file"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "AndroidManifest.xml",
+                  "type": "file"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "build.gradle",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "name": "gradle",
+      "type": "directory",
+      "children": [
+        {
+          "name": "wrapper",
+          "type": "directory",
+          "children": [
+            {
+              "name": "gradle-wrapper.jar",
+              "type": "file"
+            },
+            {
+              "name": "gradle-wrapper.properties",
+              "type": "file"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "build.gradle",
+      "type": "file"
+    },
+    {
+      "name": "directory_structure.json",
+      "type": "file"
+    },
+    {
+      "name": "gradlew",
+      "type": "file"
+    },
+    {
+      "name": "gradlew.bat",
+      "type": "file"
+    },
+    {
+      "name": "hub_relay.py",
+      "type": "file"
+    },
+    {
+      "name": "local.properties",
+      "type": "file"
+    },
+    {
+      "name": "README.md",
+      "type": "file"
+    },
+    {
+      "name": "settings.gradle",
+      "type": "file"
+    },
+    {
+      "name": "write_directory_structure.py",
+      "type": "file"
+    }
+  ]
+}
