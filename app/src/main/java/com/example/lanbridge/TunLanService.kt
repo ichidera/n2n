@@ -122,10 +122,26 @@ class TunLanService : VpnService() {
     }
 
     private fun startBridge() {
-        broadcastStatus("Searching for hub on the network...")
-        val hubAddr = discoverHub()
+        val manualHubIp = getSharedPreferences("lanbridge", MODE_PRIVATE)
+            .getString("manual_hub_ip", "")
+            ?.trim()
+
+        val hubAddr: InetAddress? = if (!manualHubIp.isNullOrEmpty()) {
+            broadcastStatus("Using manual hub IP: $manualHubIp")
+            try {
+                InetAddress.getByName(manualHubIp)
+            } catch (_: Exception) {
+                broadcastStatus("Manual hub IP is invalid: $manualHubIp")
+                null
+            }
+        } else {
+            broadcastStatus("Searching for hub on the network...")
+            discoverHub()
+        }
+
         if (hubAddr == null) {
-            broadcastStatus("No hub found. Is hub_relay.py running on your PC?")
+            broadcastStatus("No hub found. Is hub_relay.py running on your PC? " +
+                "If auto-discovery doesn't work on this emulator, try entering its gateway IP manually.")
             stopSelf()
             return
         }

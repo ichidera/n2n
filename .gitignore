@@ -77,3 +77,4 @@ pip-delete-this-directory.txt
 .project
 local.properties
 build/
+zip_project.py
