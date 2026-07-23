@@ -204,7 +204,42 @@ class TunLanService : VpnService() {
 
         tunToHub.start()
         hubToTun.start()
+
+        // Proactively register with the hub immediately, and keep re-announcing.
+        // Without this, the hub has no idea a device exists until it happens to
+        // send real traffic first -- which means the very first ping to it
+        // from another device would silently fail.
+        val myIpBytes = InetAddress.getByName(assignedIp).address
+        val keepAlive = Thread {
+            val regPacket = buildRegistrationPacket(myIpBytes)
+            while (running) {
+                try {
+                    socket.send(DatagramPacket(regPacket, regPacket.size, hubAddr, Config.RELAY_PORT))
+                } catch (_: Exception) { /* ignore, will retry next loop */ }
+                Thread.sleep(15000)
+            }
+        }
+        keepAlive.start()
+
         broadcastStatus("Connected as $assignedIp (hub ${hubAddr.hostAddress})")
+    }
+
+    /** Builds a minimal 20-byte stand-in IPv4 header purely so the hub's
+     *  relay can read the source address out of bytes 12-15 -- it doesn't
+     *  need to be a real, checksummed packet since it's never delivered
+     *  to any OS network stack, only parsed by our own Python hub. */
+    private fun buildRegistrationPacket(myIpBytes: ByteArray): ByteArray {
+        val packet = ByteArray(20)
+        packet[12] = myIpBytes[0]
+        packet[13] = myIpBytes[1]
+        packet[14] = myIpBytes[2]
+        packet[15] = myIpBytes[3]
+        // destination doesn't matter for registration -- point it at the hub itself
+        packet[16] = 10
+        packet[17] = 10
+        packet[18] = 10
+        packet[19] = 1
+        return packet
     }
 
     override fun onDestroy() {
