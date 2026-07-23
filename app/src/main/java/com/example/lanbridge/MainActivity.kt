@@ -38,7 +38,7 @@ class MainActivity : Activity() {
         }
 
         statusText = TextView(this).apply {
-            text = "Not connected\nHub: ${Config.HUB_IP}"
+            text = "Not connected"
             textSize = 16f
             setPadding(0, 24, 0, 24)
         }

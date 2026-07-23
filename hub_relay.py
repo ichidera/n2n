@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-n2n-lite hub relay + automatic IP allocator
---------------------------------------------
-Runs on your PC. Two jobs on two ports:
+n2n-lite hub relay - fully zero-config version
+------------------------------------------------
+Runs on your PC. Three jobs, three ports:
 
-  UDP 7777 (relay)    - forwards packets between edges, floods broadcast
-  UDP 7778 (allocator) - hands out a virtual IP to any device that asks
+  UDP 7776 (discovery)  - answers "where's the hub?" broadcasts
+  UDP 7777 (relay)      - forwards packets between edges, floods broadcast
+  UDP 7778 (allocator)  - hands out a virtual IP to any device that asks
 
-Every device sends a small JSON request containing a random client_id
-(generated once, stored locally on the device) and gets back an IP.
-The same client_id always gets the same IP, so no per-device config is
-needed -- one APK, install anywhere, it just works.
+Devices never need to know your PC's IP. Each device broadcasts a
+discovery request on its own local subnet; since your PC sits on every
+one of those subnets simultaneously (the real LAN, plus each emulator's
+virtual switch as its gateway), it replies from whichever interface is
+correct for that specific device automatically -- the reply's source
+address *is* the right hub IP for that device, no configuration involved.
 
 Requires only the Python standard library. Run with:
     python hub_relay.py
@@ -23,8 +26,12 @@ import socket
 PEERS: dict[str, tuple[str, int]] = {}   # virtual_ip -> (real_ip, real_port)
 LEASES: dict[str, str] = {}              # client_id -> assigned virtual_ip
 
+DISCOVERY_PORT = 7776
 RELAY_PORT = 7777
 ALLOC_PORT = 7778
+DISCOVERY_MAGIC = b"LANBRIDGE_DISCOVER"
+DISCOVERY_REPLY = b"LANBRIDGE_HUB"
+
 SUBNET_PREFIX = "10.10.10."
 _next_octet = 2                          # .1 is reserved for the hub itself
 
@@ -38,6 +45,17 @@ def allocate_ip(client_id: str) -> str:
     _next_octet += 1
     print(f"[alloc] {client_id} -> {ip}")
     return ip
+
+
+class Discovery(asyncio.DatagramProtocol):
+    def connection_made(self, transport):
+        self.transport = transport
+        print(f"[hub] discovery listening on UDP {DISCOVERY_PORT}")
+
+    def datagram_received(self, data: bytes, addr):
+        if data.strip() == DISCOVERY_MAGIC:
+            print(f"[discover] request from {addr} -> replying")
+            self.transport.sendto(DISCOVERY_REPLY, addr)
 
 
 class Relay(asyncio.DatagramProtocol):
@@ -90,9 +108,10 @@ class Allocator(asyncio.DatagramProtocol):
 
 async def main():
     loop = asyncio.get_running_loop()
+    await loop.create_datagram_endpoint(Discovery, local_addr=("0.0.0.0", DISCOVERY_PORT))
     await loop.create_datagram_endpoint(Relay, local_addr=("0.0.0.0", RELAY_PORT))
     await loop.create_datagram_endpoint(Allocator, local_addr=("0.0.0.0", ALLOC_PORT))
-    print("Hub running. Press Ctrl+C to stop.")
+    print("Hub running (fully zero-config). Press Ctrl+C to stop.")
     try:
         await asyncio.Event().wait()
     except asyncio.CancelledError:

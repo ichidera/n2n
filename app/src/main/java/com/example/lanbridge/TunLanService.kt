@@ -12,18 +12,16 @@ import java.util.UUID
 
 /**
  * Creates a TUN interface and bridges every packet to/from the hub relay
- * over a single UDP socket. Unlike the original version, this build asks
- * the hub for a virtual IP automatically -- no per-device editing needed.
- * Install the same APK on every BlueStacks/MEmu instance and your phone;
- * each one gets a unique IP the first time it connects and keeps it
- * afterward (the hub remembers it by a random ID stored on-device).
- *
- * EDIT ONLY THIS ONE CONSTANT, ONCE, FOR YOUR WHOLE SETUP:
+ * over a single UDP socket. This build needs ZERO configuration on any
+ * device: it broadcasts to find the hub, then asks the hub for its own
+ * virtual IP automatically. Install the exact same APK on every
+ * BlueStacks/MEmu instance and your phone -- nothing to edit, ever.
  */
 object Config {
-    const val HUB_IP = "192.168.0.11"     // your PC's real LAN IP
-    const val HUB_PORT = 7777             // data relay port
-    const val ALLOC_PORT = 7778           // IP allocation port
+    const val DISCOVERY_PORT = 7776
+    const val RELAY_PORT = 7777
+    const val ALLOC_PORT = 7778
+    val DISCOVERY_MAGIC: ByteArray = "LANBRIDGE_DISCOVER".toByteArray()
 }
 
 class TunLanService : VpnService() {
@@ -48,7 +46,7 @@ class TunLanService : VpnService() {
         sendBroadcast(Intent(ACTION_STATUS).putExtra(EXTRA_MESSAGE, message))
     }
 
-    /** A random ID generated once per device install, used so the hub can
+    /** A random ID generated once per device install, so the hub can
      *  always hand back the same virtual IP to the same device. */
     private fun getOrCreateClientId(): String {
         val prefs = getSharedPreferences("lanbridge", MODE_PRIVATE)
@@ -60,14 +58,49 @@ class TunLanService : VpnService() {
         return id
     }
 
-    /** Asks the hub for a virtual IP. Retries a few times in case the hub
-     *  isn't up yet. Returns null if it never got an answer. */
-    private fun requestVirtualIp(clientId: String): String? {
+    /** Broadcasts on the local subnet asking "where's the hub?" and
+     *  returns whichever address answers -- that's automatically the
+     *  correct hub IP for this specific device/network. Retries a few
+     *  times since UDP broadcast can occasionally get dropped. */
+    private fun discoverHub(): InetAddress? {
+        val socket = DatagramSocket(null)
+        socket.reuseAddress = true
+        socket.broadcast = true
+        socket.soTimeout = 2000
+        try {
+            socket.bind(java.net.InetSocketAddress(0))
+            val broadcastAddr = InetAddress.getByName("255.255.255.255")
+
+            repeat(6) {
+                try {
+                    socket.send(
+                        DatagramPacket(
+                            Config.DISCOVERY_MAGIC, Config.DISCOVERY_MAGIC.size,
+                            broadcastAddr, Config.DISCOVERY_PORT
+                        )
+                    )
+                    val buffer = ByteArray(64)
+                    val packet = DatagramPacket(buffer, buffer.size)
+                    socket.receive(packet)
+                    if (String(buffer, 0, packet.length) == "LANBRIDGE_HUB") {
+                        return packet.address
+                    }
+                } catch (_: Exception) {
+                    // timed out this attempt, loop and retry
+                }
+            }
+        } finally {
+            socket.close()
+        }
+        return null
+    }
+
+    /** Asks the hub for a virtual IP. Retries a few times. */
+    private fun requestVirtualIp(hubAddr: InetAddress, clientId: String): String? {
         val socket = DatagramSocket()
         socket.soTimeout = 3000
         try {
             val requestBytes = "{\"client_id\":\"$clientId\"}".toByteArray()
-            val hubAddr = InetAddress.getByName(Config.HUB_IP)
             val ipPattern = Regex("\"ip\"\\s*:\\s*\"([^\"]+)\"")
 
             repeat(5) {
@@ -89,12 +122,19 @@ class TunLanService : VpnService() {
     }
 
     private fun startBridge() {
-        broadcastStatus("Requesting virtual IP from hub...")
-        val clientId = getOrCreateClientId()
-        val assignedIp = requestVirtualIp(clientId)
+        broadcastStatus("Searching for hub on the network...")
+        val hubAddr = discoverHub()
+        if (hubAddr == null) {
+            broadcastStatus("No hub found. Is hub_relay.py running on your PC?")
+            stopSelf()
+            return
+        }
+        broadcastStatus("Found hub at ${hubAddr.hostAddress}, requesting IP...")
 
+        val clientId = getOrCreateClientId()
+        val assignedIp = requestVirtualIp(hubAddr, clientId)
         if (assignedIp == null) {
-            broadcastStatus("Could not reach hub at ${Config.HUB_IP}. Is hub_relay.py running?")
+            broadcastStatus("Hub found but did not assign an IP. Try again.")
             stopSelf()
             return
         }
@@ -120,7 +160,6 @@ class TunLanService : VpnService() {
         udpSocket = socket
 
         running = true
-        val hubAddr = InetAddress.getByName(Config.HUB_IP)
 
         // TUN -> hub
         val tunToHub = Thread {
@@ -129,7 +168,7 @@ class TunLanService : VpnService() {
                 while (running) {
                     val len = input.read(buffer)
                     if (len > 0) {
-                        socket.send(DatagramPacket(buffer, len, hubAddr, Config.HUB_PORT))
+                        socket.send(DatagramPacket(buffer, len, hubAddr, Config.RELAY_PORT))
                     }
                 }
             } catch (_: Exception) { /* socket closed on stop */ }
@@ -149,7 +188,7 @@ class TunLanService : VpnService() {
 
         tunToHub.start()
         hubToTun.start()
-        broadcastStatus("Connected as $assignedIp")
+        broadcastStatus("Connected as $assignedIp (hub ${hubAddr.hostAddress})")
     }
 
     override fun onDestroy() {
