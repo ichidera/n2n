@@ -2,6 +2,7 @@ package com.example.lanbridge
 
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -33,7 +34,10 @@ class TunLanService : VpnService() {
     companion object {
         const val ACTION_STATUS = "com.example.lanbridge.STATUS"
         const val EXTRA_MESSAGE = "message"
+        const val EXTRA_HUB_IP = "hub_ip"
     }
+
+    private var discoveredHubAddr: InetAddress? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (!running) {
@@ -43,7 +47,9 @@ class TunLanService : VpnService() {
     }
 
     private fun broadcastStatus(message: String) {
-        sendBroadcast(Intent(ACTION_STATUS).putExtra(EXTRA_MESSAGE, message))
+        val intent = Intent(ACTION_STATUS).putExtra(EXTRA_MESSAGE, message)
+        discoveredHubAddr?.hostAddress?.let { intent.putExtra(EXTRA_HUB_IP, it) }
+        sendBroadcast(intent)
     }
 
     /** A random ID generated once per device install, so the hub can
@@ -95,12 +101,15 @@ class TunLanService : VpnService() {
         return null
     }
 
-    /** Asks the hub for a virtual IP. Retries a few times. */
+    /** Asks the hub for a virtual IP, sending along a friendly device
+     *  name (e.g. "Redmi Note 12") so the hub's peer list is readable.
+     *  Retries a few times. */
     private fun requestVirtualIp(hubAddr: InetAddress, clientId: String): String? {
         val socket = DatagramSocket()
         socket.soTimeout = 3000
         try {
-            val requestBytes = "{\"client_id\":\"$clientId\"}".toByteArray()
+            val safeName = Build.MODEL.replace("\"", "").replace("\\", "")
+            val requestBytes = "{\"client_id\":\"$clientId\",\"name\":\"$safeName\"}".toByteArray()
             val ipPattern = Regex("\"ip\"\\s*:\\s*\"([^\"]+)\"")
 
             repeat(5) {
@@ -145,6 +154,7 @@ class TunLanService : VpnService() {
             stopSelf()
             return
         }
+        discoveredHubAddr = hubAddr
         broadcastStatus("Found hub at ${hubAddr.hostAddress}, requesting IP...")
 
         val clientId = getOrCreateClientId()
@@ -159,6 +169,8 @@ class TunLanService : VpnService() {
         val builder = Builder()
             .addAddress(assignedIp, 24)
             .addRoute("10.10.10.0", 24)
+            .addRoute("255.255.255.255", 32)  // capture global broadcast (game discovery)
+            .addRoute("224.0.0.0", 4)          // capture multicast, just in case
             .setMtu(1400)
             .setSession("LAN Bridge")
 
