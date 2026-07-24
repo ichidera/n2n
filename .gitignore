@@ -79,3 +79,4 @@ local.properties
 build/
 zip_project.py
 leases.json
+archive.zip
