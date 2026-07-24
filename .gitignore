@@ -78,3 +78,4 @@ pip-delete-this-directory.txt
 local.properties
 build/
 zip_project.py
+leases.json
