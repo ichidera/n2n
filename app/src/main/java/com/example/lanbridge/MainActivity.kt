@@ -1,10 +1,12 @@
 package com.example.lanbridge
 
+import android.Manifest
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +15,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import org.json.JSONObject
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -20,21 +25,25 @@ import java.net.InetAddress
 class MainActivity : Activity() {
 
     private val vpnRequestCode = 100
+    private val notificationPermissionCode = 101
     private lateinit var statusText: TextView
     private lateinit var peersText: TextView
     private lateinit var manualHubField: EditText
-    private var lastKnownHubIp: String? = null
+    private lateinit var prefs: android.content.SharedPreferences
 
     private val statusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val message = intent?.getStringExtra(TunLanService.EXTRA_MESSAGE) ?: return
             statusText.text = message
-            intent.getStringExtra(TunLanService.EXTRA_HUB_IP)?.let { lastKnownHubIp = it }
+            intent.getStringExtra(TunLanService.EXTRA_HUB_IP)?.let { hubIp ->
+                prefs.edit().putString("last_known_hub_ip", hubIp).apply()
+            }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        prefs = getSharedPreferences("lanbridge", MODE_PRIVATE)
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -46,13 +55,16 @@ class MainActivity : Activity() {
             textSize = 20f
         }
 
+        val platformText = TextView(this).apply {
+            text = "Platform: ${EmulatorDetector.platform.label}"
+            textSize = 12f
+        }
+
         statusText = TextView(this).apply {
             text = "Not connected"
             textSize = 16f
             setPadding(0, 24, 0, 24)
         }
-
-        val prefs = getSharedPreferences("lanbridge", MODE_PRIVATE)
 
         val manualHubLabel = TextView(this).apply {
             text = "Manual hub IP (optional -- leave blank for auto-discovery)"
@@ -71,6 +83,7 @@ class MainActivity : Activity() {
             setOnClickListener {
                 val manualIp = manualHubField.text.toString().trim()
                 prefs.edit().putString("manual_hub_ip", manualIp).apply()
+                requestNotificationPermissionIfNeeded()
                 startBridge()
             }
         }
@@ -101,6 +114,7 @@ class MainActivity : Activity() {
         }
 
         layout.addView(title)
+        layout.addView(platformText)
         layout.addView(statusText)
         layout.addView(manualHubLabel)
         layout.addView(manualHubField)
@@ -128,6 +142,18 @@ class MainActivity : Activity() {
         unregisterReceiver(statusReceiver)
     }
 
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), notificationPermissionCode
+                )
+            }
+        }
+    }
+
     private fun startBridge() {
         val intent = VpnService.prepare(this)
         if (intent != null) {
@@ -144,10 +170,12 @@ class MainActivity : Activity() {
         }
     }
 
-    /** Asks the hub who else is currently online and updates the on-screen
-     *  list. Runs on a background thread since it's network I/O. */
+    /** Uses the persisted hub IP (survives Activity recreation from
+     *  rotation/task-kill-and-reopen even if TunLanService was already
+     *  connected and isn't sending fresh status broadcasts) rather than
+     *  only relying on a live broadcast having already arrived. */
     private fun refreshPeers() {
-        val hubIp = lastKnownHubIp
+        val hubIp = prefs.getString("last_known_hub_ip", null)
         if (hubIp == null) {
             peersText.text = "Not connected yet -- start the bridge first."
             return
@@ -164,7 +192,7 @@ class MainActivity : Activity() {
         socket.soTimeout = 3000
         try {
             val hubAddr = InetAddress.getByName(hubIp)
-            val requestBytes = "{\"action\":\"list\"}".toByteArray()
+            val requestBytes = "{\"action\":\"list\",\"key\":\"${Config.NETWORK_KEY}\"}".toByteArray()
             socket.send(DatagramPacket(requestBytes, requestBytes.size, hubAddr, Config.ALLOC_PORT))
 
             val buffer = ByteArray(4096)
@@ -172,15 +200,19 @@ class MainActivity : Activity() {
             socket.receive(packet)
             val response = String(buffer, 0, packet.length)
 
-            val entryPattern = Regex("\"ip\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"name\"\\s*:\\s*\"([^\"]*)\"")
-            val matches = entryPattern.findAll(response).toList()
-            if (matches.isEmpty()) return "No other devices online right now."
+            val json = JSONObject(response)
+            val peersArray = json.optJSONArray("peers") ?: return "No other devices online right now."
+            if (peersArray.length() == 0) return "No other devices online right now."
 
-            return matches.joinToString("\n") { m ->
-                val ip = m.groupValues[1]
-                val name = m.groupValues[2]
-                if (name.isNotBlank() && name != ip) "$name  ($ip)" else ip
+            val lines = StringBuilder()
+            for (i in 0 until peersArray.length()) {
+                val entry = peersArray.getJSONObject(i)
+                val ip = entry.optString("ip", "?")
+                val name = entry.optString("name", ip)
+                lines.append(if (name.isNotBlank() && name != ip) "$name  ($ip)" else ip)
+                if (i < peersArray.length() - 1) lines.append("\n")
             }
+            return lines.toString()
         } catch (e: Exception) {
             return "Could not reach hub: ${e.message}"
         } finally {
