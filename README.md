@@ -63,6 +63,8 @@ as a fallback; leave it blank everywhere else.
   broadcast/multicast) to/from the hub over UDP. Also shows a live list
   of connected devices.
 
+Feedback welcome: https://ichiderafeedback.lovable.app/
+
 ## Setup
 
 ### 1. Run the hub on your PC
