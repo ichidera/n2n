@@ -56,6 +56,7 @@ class TunLanService : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
+        EmulatorDetector.init(this)
         createNotificationChannelIfNeeded()
     }
 

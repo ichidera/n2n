@@ -6,6 +6,26 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Required so PackageManager.getPackageInfo() can see these packages
+         under Android 11+ package-visibility rules. Without this,
+         EmulatorDetector's package-based checks would silently report
+         "not found" for every one of them regardless of what's actually
+         installed on the device. -->
+    <queries>
+        <package android:name="com.microvirt.launcher2" />
+        <package android:name="com.microvirt.tools" />
+        <package android:name="com.microvirt.installer" />
+        <package android:name="com.microvirt.download" />
+        <package android:name="com.microvirt.memuime" />
+        <package android:name="com.bluestacks.home" />
+        <package android:name="com.bluestacks.settings" />
+        <package android:name="com.bluestacks.appmart" />
+        <package android:name="com.bluestacks.BstCommandProcessor" />
+        <package android:name="com.bignox.app" />
+        <package android:name="com.vphone.launcher" />
+        <package android:name="org.bignox.tools" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:label="LAN Bridge"

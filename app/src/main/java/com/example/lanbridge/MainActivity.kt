@@ -44,6 +44,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("lanbridge", MODE_PRIVATE)
+        EmulatorDetector.init(this)
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
