@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Required so PackageManager.getPackageInfo() can see these packages
-         under Android 11+ package-visibility rules. Without this,
-         EmulatorDetector's package-based checks would silently report
-         "not found" for every one of them regardless of what's actually
-         installed on the device. -->
-    <queries>
-        <package android:name="com.microvirt.launcher2" />
-        <package android:name="com.microvirt.tools" />
-        <package android:name="com.microvirt.installer" />
-        <package android:name="com.microvirt.download" />
-        <package android:name="com.microvirt.memuime" />
-        <package android:name="com.bluestacks.home" />
-        <package android:name="com.bluestacks.settings" />
-        <package android:name="com.bluestacks.appmart" />
-        <package android:name="com.bluestacks.BstCommandProcessor" />
-        <package android:name="com.bignox.app" />
-        <package android:name="com.vphone.launcher" />
-        <package android:name="org.bignox.tools" />
-    </queries>
+    <!-- EmulatorDetector.identifyVendor() scans the FULL installed-app
+         list for a keyword match instead of checking a fixed set of exact
+         package names, so a new emulator vendor doesn't require a manifest
+         update to be recognized. That generality costs this permission:
+         QUERY_ALL_PACKAGES lets the app see the name of every app
+         installed on the device, not just ones it explicitly declares
+         interest in via <queries>. It's a "normal" permission so it's
+         auto-granted at install with no runtime prompt, but Google Play
+         requires a declared-use justification for it on public listings.
+         That's a non-issue here since this app is sideloaded for personal
+         LAN use and never goes through Play Store review, but don't
+         carry this into a published app without re-evaluating the
+         tradeoff (a <queries> allowlist of exact known packages is the
+         Play-Store-safe alternative, at the cost of needing an update
+         every time a new vendor shows up). -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
 
     <application
         android:allowBackup="true"
