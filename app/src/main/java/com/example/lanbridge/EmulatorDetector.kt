@@ -179,12 +179,19 @@ object EmulatorDetector {
      * list is extended, instead of being missed entirely.
      */
     private fun identifyVendor(): String? {
-        val pm = appContext?.packageManager ?: return null
-        val packages = try {
-            pm.getInstalledPackages(0).map { it.packageName }
-        } catch (_: Exception) {
+        val pm = appContext?.packageManager ?: run {
+            Log.w(TAG, "identifyVendor: no context set (init() not called yet?)")
             return null
         }
+        val packages = try {
+            pm.getInstalledPackages(0).map { it.packageName }
+        } catch (e: Exception) {
+            Log.w(TAG, "identifyVendor: getInstalledPackages() failed -- is " +
+                "QUERY_ALL_PACKAGES actually in the installed APK's manifest? ($e)")
+            return null
+        }
+        Log.d(TAG, "identifyVendor: scanned ${packages.size} installed packages")
+
         // Substrings chosen to avoid false-matching real apps a physical
         // device owner might legitimately have installed -- plain
         // "tencent" would false-positive on WeChat/QQ, so we key on
@@ -205,8 +212,24 @@ object EmulatorDetector {
             "koplayer" to "KOPlayer",
         )
         for ((keyword, name) in vendorKeywords) {
-            if (packages.any { it.contains(keyword, ignoreCase = true) }) return name
+            val match = packages.firstOrNull { it.contains(keyword, ignoreCase = true) }
+            if (match != null) {
+                Log.d(TAG, "identifyVendor: matched '$keyword' -> $name (package=$match)")
+                return name
+            }
         }
+
+        // No exact keyword matched. Rather than fail silently and leave us
+        // guessing again, surface anything that *might* be a miss on the
+        // keyword list -- e.g. if BlueStacks' real internal package uses
+        // "bst" instead of "bluestacks" (its sensor service log tag is
+        // "bstsensor_*", suggesting exactly that). This log line is what
+        // tells us the real name to add, instead of guessing a second time.
+        val looseHints = listOf("blue", "stack", "bst", "emulator", "player", "virt", "sim")
+        val candidates = packages.filter { pkg ->
+            looseHints.any { hint -> pkg.contains(hint, ignoreCase = true) }
+        }
+        Log.d(TAG, "identifyVendor: no keyword matched. Loose candidates: $candidates")
         return null
     }
 
