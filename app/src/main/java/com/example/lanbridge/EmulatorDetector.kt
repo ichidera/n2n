@@ -79,6 +79,41 @@ object EmulatorDetector {
     val isEmulator: Boolean get() = platform.isEmulator
 
     private fun detect(): Result {
+        // Path 0: instruction-set architecture. Checked first, and
+        // decisive on its own. Virtually every commercial PC "gaming"
+        // emulator -- BlueStacks, MEmu, Nox, LDPlayer, GameLoop, MuMu,
+        // and the rest -- runs x86/x86_64 Android specifically because
+        // hardware-accelerated x86 virtualization (Intel HAXM/AMD-V/
+        // Hyper-V) is what makes them fast. That's not a branding choice
+        // that can be turned off; it's the entire reason a PC emulator
+        // exists instead of just running real ARM Android in software
+        // (which would be unusably slow). Build.MANUFACTURER/HARDWARE/
+        // BOARD can be spoofed to claim a real Snapdragon/Exynos phone
+        // (as seen: fingerprint claiming a Galaxy S22 Ultra); the actual
+        // compiled instruction set can't be, without literally shipping
+        // real ARM Android and giving up the speed advantage.
+        //
+        // This also matters because it doesn't touch PackageManager at
+        // all -- unlike the package-based check below, which BlueStacks
+        // appears to defeat by filtering its own packages out of
+        // getInstalledPackages() results even under QUERY_ALL_PACKAGES
+        // (com.bluestacks.launcher is visibly running in logcat but never
+        // shows up in a package scan from this app). Reading
+        // Build.SUPPORTED_ABIS can't be intercepted the same way.
+        //
+        // Caveat: a handful of real x86 Android phones/tablets existed
+        // circa 2013-2015 (some Asus Zenfones, a few Lenovo/Motorola
+        // models on Intel Atom). They're long discontinued and vanishingly
+        // rare today, so this trade-off is accepted deliberately.
+        val primaryAbi = Build.SUPPORTED_ABIS.firstOrNull().orEmpty()
+        val isX86 = primaryAbi.startsWith("x86")
+        Log.d(TAG, "signal 0 (x86 ABI): abis=${Build.SUPPORTED_ABIS.joinToString()} hit=$isX86")
+        if (isX86) {
+            val vendor = identifyVendor()
+            Log.d(TAG, "Path 0 hit: x86 ABI -> vendor=${vendor ?: "unrecognized"}")
+            return Result(isEmulator = true, vendor = vendor, signalsHit = -2)
+        }
+
         // Path A: a known vendor package present. This runs first and
         // unconditionally, and is decisive on its own -- com.microvirt.*
         // (or bluestacks.*, bignox.*, etc.) existing on the device is not
