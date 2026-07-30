@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import android.telephony.TelephonyManager
+import android.util.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -52,6 +53,8 @@ import java.io.FileReader
  */
 object EmulatorDetector {
 
+    private const val TAG = "EmulatorDetector"
+
     data class Result(val isEmulator: Boolean, val vendor: String?, val signalsHit: Int) {
         val label: String
             get() = when {
@@ -76,33 +79,69 @@ object EmulatorDetector {
     val isEmulator: Boolean get() = platform.isEmulator
 
     private fun detect(): Result {
+        // Path A: a known vendor package present. This runs first and
+        // unconditionally, and is decisive on its own -- com.microvirt.*
+        // (or bluestacks.*, bignox.*, etc.) existing on the device is not
+        // something a real phone would ever have installed, full stop.
+        //
+        // This has to come before the structural checks below, not after
+        // them: commercial GAMING emulators (BlueStacks, MEmu, and most of
+        // their competitors) run a full simulated telephony/telecom stack
+        // and simulated sensors specifically because mobile games check
+        // for those and refuse to launch without them. That means the
+        // exact signals that look "structurally hard to fake" on a
+        // bare-bones dev emulator are the ones a polished gaming emulator
+        // has the strongest incentive to fake well. Gating the package
+        // check behind those signals meant a real, decisive match
+        // (com.microvirt.launcher2 sitting right there installed) never
+        // even got checked, because the weaker signals failed first.
+        identifyVendor()?.let { vendor ->
+            Log.d(TAG, "Path A hit: recognized vendor package -> $vendor")
+            return Result(isEmulator = true, vendor = vendor, signalsHit = -1)
+        }
+        Log.d(TAG, "Path A: no recognized vendor package found, falling back to Path B")
+
+        // Path B: no recognized vendor package -- fall back to
+        // vendor-agnostic structural signals, for anything not on that
+        // list yet. Weaker by the same reasoning above (a good gaming
+        // emulator can fake several of these), so this stays a secondary
+        // path rather than the primary check.
+        //
+        // Every signal below is logged individually with its raw value.
+        // If Path B ever misclassifies a device again, `adb logcat -s
+        // EmulatorDetector` gives real evidence of exactly which checks
+        // fired and which didn't, instead of another round of guessing.
         var hits = 0
 
         // 1. No real modem.
-        appContext?.let { ctx ->
-            val tm = ctx.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            if (tm?.phoneType == TelephonyManager.PHONE_TYPE_NONE) hits++
+        val phoneType = appContext?.let { ctx ->
+            (ctx.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager)?.phoneType
         }
+        val noModem = phoneType == TelephonyManager.PHONE_TYPE_NONE
+        Log.d(TAG, "signal 1 (no modem): phoneType=$phoneType hit=$noModem")
+        if (noModem) hits++
 
         // 2. No real sensor hardware.
-        appContext?.let { ctx ->
-            val sm = ctx.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-            val sensorCount = sm?.getSensorList(Sensor.TYPE_ALL)?.size ?: -1
-            if (sensorCount in 0..1) hits++
-        }
+        val sensorCount = appContext?.let { ctx ->
+            (ctx.getSystemService(Context.SENSOR_SERVICE) as? SensorManager)
+                ?.getSensorList(Sensor.TYPE_ALL)?.size
+        } ?: -1
+        val fewSensors = sensorCount in 0..1
+        Log.d(TAG, "signal 2 (sparse sensors): sensorCount=$sensorCount hit=$fewSensors")
+        if (fewSensors) hits++
 
         // 3. QEMU / hypervisor filesystem + property fingerprints.
-        if (fileExists("/dev/qemu_pipe") ||
-            fileExists("/system/bin/qemu-props") ||
-            fileExists("/dev/socket/qemud") ||
-            getSystemProperty("ro.kernel.qemu") == "1" ||
+        val qemuFile = fileExists("/dev/qemu_pipe") || fileExists("/system/bin/qemu-props") ||
+            fileExists("/dev/socket/qemud")
+        val qemuProp = getSystemProperty("ro.kernel.qemu") == "1" ||
             getSystemProperty("ro.boot.qemu") == "1"
-        ) {
-            hits++
-        }
+        Log.d(TAG, "signal 3 (qemu fingerprints): file=$qemuFile prop=$qemuProp")
+        if (qemuFile || qemuProp) hits++
 
         // 4. CPU-reported virtualization.
-        if (cpuInfoIndicatesVirtualization()) hits++
+        val cpuVirt = cpuInfoIndicatesVirtualization()
+        Log.d(TAG, "signal 4 (cpuinfo virtualization): hit=$cpuVirt")
+        if (cpuVirt) hits++
 
         // 5. Classic AVD/goldfish/ranchu Build fields -- still useful for
         //    the stock Android Studio emulator and its direct rebadges,
@@ -116,14 +155,18 @@ object EmulatorDetector {
             Build.HARDWARE.contains("vbox", ignoreCase = true),
             Build.BOARD == "unknown",
         )
-        if (genericBuildSignals.any { it }) hits++
+        val buildHit = genericBuildSignals.any { it }
+        Log.d(TAG, "signal 5 (generic build fields): fingerprint=${Build.FINGERPRINT} " +
+            "hardware=${Build.HARDWARE} board=${Build.BOARD} hit=$buildHit")
+        if (buildHit) hits++
 
         // Require at least two independent structural signals so a single
         // false positive (e.g. a real budget tablet missing one sensor)
-        // can't misclassify a physical device.
-        val isEmu = hits >= 2
-        val vendor = if (isEmu) identifyVendor() else null
-        return Result(isEmu, vendor, hits)
+        // can't misclassify a physical device. vendor is always null here
+        // -- Path A above already checked and came back empty, or we
+        // wouldn't have reached this line.
+        Log.d(TAG, "Path B total hits=$hits (need >=2)")
+        return Result(isEmulator = hits >= 2, vendor = null, signalsHit = hits)
     }
 
     /**
